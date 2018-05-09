@@ -26,7 +26,9 @@ const defaults = {
   metadata: {
     enhanced: false, // Note: After changing this setting, you will want to delete the _media database folder
     fieldOrder: false, // This is an expensive check, as it requires decoding the beginning of the video
-    fieldOrderScanDuration: 200 // Frames. Note: Needs sufficient motion (Not titlecard)
+    fieldOrderScanDuration: 200, // Frames. Note: Needs sufficient motion (Not titlecard)
+    scenes: false,
+    sceneThreshold: 0.4
   },
   isProduction: process.env.NODE_ENV === 'production',
   logger: {

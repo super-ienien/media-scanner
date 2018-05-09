@@ -265,9 +265,45 @@ module.exports = function ({ config, db, logger }) {
       })
     })
 
+    const scenes = await new Promise((resolve, reject) => {
+      if (!config.metadata.scenes) {
+        return resolve(undefined)
+      }
+
+      const args = [
+        // TODO (perf) Low priority process?
+        config.paths.ffmpeg,
+        '-hide_banner',
+        '-i', `"${doc.mediaPath}"`,
+        '-filter:v', `"select='gt(scene,${config.metadata.sceneThreshold})',showinfo"`,
+        '-an',
+        '-f', 'null',
+        '-'
+      ]
+      cp.exec(args.join(' '), (err, stdout, stderr) => {
+        if (err) {
+          return reject(err)
+        }
+
+        const scenes = []
+
+        var regex = /Parsed_showinfo_(.*)pts_time:([\d.]+)\s+/g
+        let res
+        do {
+          res = regex.exec(stderr)
+          if (res) {
+            scenes.push(parseFloat(res[2]))
+          }
+        } while (res)
+
+        return resolve(scenes)
+      })
+    })
+
     return {
       name: doc._id,
       field_order: fieldOrder,
+      scenes: scenes,
 
       streams: json.streams.map(s => ({
         codec: {
