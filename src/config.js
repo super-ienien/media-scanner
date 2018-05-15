@@ -23,6 +23,13 @@ const defaults = {
     width: 256,
     height: -1
   },
+  metadata: {
+    enhanced: false, // Note: After changing this setting, you will want to delete the _media database folder
+    fieldOrder: false, // This is an expensive check, as it requires decoding the beginning of the video
+    fieldOrderScanDuration: 200, // Frames. Note: Needs sufficient motion (Not titlecard)
+    scenes: false,
+    sceneThreshold: 0.4
+  },
   previews: {
     enable: false,
     width: 160,
