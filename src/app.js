@@ -1,5 +1,6 @@
 const express = require('express')
 const pinoHttp = require('pino-http')
+const cors = require('cors')
 const PouchDB = require('pouchdb-node')
 const util = require('util')
 const path = require('path')
@@ -14,6 +15,7 @@ module.exports = function ({ db, config, logger }) {
   const app = express()
 
   app.use(pinoHttp({ logger }))
+  app.use(cors())
 
   app.use('/db', require('express-pouchdb')(PouchDB, {
     mode: 'minimumForPouchDB'
