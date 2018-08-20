@@ -57,6 +57,8 @@ module.exports = function ({ config, db, logger }) {
         // TODO (perf) Low priority process?
         config.paths.ffmpeg,
         '-hide_banner',
+        '-y',
+        '-threads 1',
         '-i', `"${doc.mediaPath}"`,
         '-f', 'webm',
         '-an',
@@ -64,7 +66,7 @@ module.exports = function ({ config, db, logger }) {
         '-b:v', config.previews.bitrate,
         '-auto-alt-ref', '0',
         `-vf scale=${config.previews.width}:${config.previews.height}`,
-        '-threads 1',
+        '-deadline realtime',
         `"${tmpPath}"`
       ]
 
