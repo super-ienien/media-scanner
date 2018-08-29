@@ -60,7 +60,9 @@ module.exports = function ({ config, db, logger }) {
       })
       await Promise.all(rows.map(async ({ doc }) => {
         try {
-          if (doc.mediaPath.indexOf(config.scanner.paths) === 0 && await fileExists(doc.mediaPath)) {
+          const mediaFolder = config.scanner.paths.split('\\').join('/')
+          const mediaPath = doc.mediaPath.split('\\').join('/')
+          if (mediaPath.indexOf(mediaFolder) === 0 && await fileExists(doc.mediaPath)) {
             return
           }
 
