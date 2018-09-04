@@ -1,5 +1,6 @@
-CasparCG Media-Scanner
+Sofie: The Modern TV News Studio Automation System (CasparCG Media Scanner)
 ===============
+Sofie-specific fork of CasparCG Server 2.2's Media Scanner, modified to work with the [Sofie-specific fork of CasparCG Server](https://github.com/nrkno/tv-automation-casparcg-server) where most new features have been contributed back to the official branch.
 
 This project facilitates CasparCG Server since version 2.2.0. It abstracts the collection of metadata and generation of thumbnails into a separate process.
 
