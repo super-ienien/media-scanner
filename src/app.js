@@ -5,7 +5,7 @@ const PouchDB = require('pouchdb-node')
 const util = require('util')
 const path = require('path')
 const recursiveReadDir = require('recursive-readdir')
-const { getId } = require('./util')
+const { getId, fsSize } = require('./util')
 
 const recursiveReadDirAsync = util.promisify(recursiveReadDir)
 
@@ -19,6 +19,13 @@ module.exports = function ({ db, config, logger }) {
 
   app.use('/db', require('express-pouchdb')(PouchDB, {
     mode: 'minimumForPouchDB'
+  }))
+
+  app.get('/stat/fs', wrap(async (req, res) => {
+    const filesystemInfo = await fsSize()
+
+    res.set('content-type', 'application/json')
+    res.send(filesystemInfo)
   }))
 
   app.get('/media', wrap(async (req, res) => {
