@@ -46,6 +46,8 @@ module.exports = function ({ config, db, logger }) {
         return
       }
 
+      if (doc.mediaPath.match(/_watchdogIgnore_/)) return // ignore watchdog file
+
       const mediaLogger = logger.child({
         id: mediaId,
         path: doc.mediaPath
