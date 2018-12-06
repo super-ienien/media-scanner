@@ -9,7 +9,7 @@ const config = require('./config')
 /** How often to run the watchdog */
 const CHECK_INTERVAL = 5 * 60 * 1000
 /** Maximum time to expect the changes in the database */
-const EXPECT_TIME = 10 * 1000
+const EXPECT_TIME = 30 * 1000
 
 const WATCHDOG_FILE = 'watchdog.mov'
 
@@ -196,7 +196,7 @@ module.exports = function startWatchDog(logger, db) {
                 })
             }
             setInterval(triggerWatchDog, CHECK_INTERVAL)
-            triggerWatchDog()
+            setTimeout(triggerWatchDog, 3 * 1000)
         } else {
             logger.warn(`Watchdog is disabled because ${path} wasn't found`)
         }
