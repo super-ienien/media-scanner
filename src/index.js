@@ -4,7 +4,7 @@ const PouchDB = require('pouchdb-node')
 const scanner = require('./scanner')
 const previews = require('./previews')
 const app = require('./app')
-const startWatchDog = require('./watchDog')
+const startWatchDog = require('./watchdog')
 
 const logger = pino(Object.assign({}, config.logger, {
   serializers: {
