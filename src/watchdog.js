@@ -13,6 +13,28 @@ const EXPECT_TIME = 10 * 1000
 
 const WATCHDOG_FILE = 'watchdog.mov'
 
+async function cleanUpOldWatchdogFiles (logger, path) {
+
+    try {
+
+        const files = await promisify(fs.readdir, path)
+        for (let i in files) {
+            let fileName = files[i]
+
+            // Find any old watchdog files and remove them:
+            if (fileName.match(/_watchdogIgnore_/i)) {
+
+                const filePath = `${path}/${fileName}`
+
+                logger.info('Watchdog: Removing old file ' + fileName)
+                await promisify(fs.unlink, filePath)
+                
+            }
+        }
+    } catch (err) {
+        logger.error(err)
+    }
+}
 
 async function doWhatWatchDogsDo (logger, db, path, fileName) {
     
@@ -42,6 +64,9 @@ async function doWhatWatchDogsDo (logger, db, path, fileName) {
             removeFileResolve = null
         }
     }
+
+    // Clean up old files created by old watchdog runs:
+    await cleanUpOldWatchdogFiles(logger, path)
 
     // Watch the pouchdb for changes:
     db.changes({
