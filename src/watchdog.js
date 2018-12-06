@@ -27,7 +27,7 @@ async function cleanUpOldWatchdogFiles (logger, path) {
                 const filePath = `${path}/${fileName}`
 
                 logger.info('Watchdog: Removing old file ' + fileName)
-                await promisify(fs.unlink, filePath)
+                await removeFile(filePath)
                 
             }
         }
@@ -107,7 +107,7 @@ async function doWhatWatchDogsDo (logger, db, path, fileName) {
     // Then, we remove the copy and expect to see the file removed from the database
     logger.info('Watchdog: remove file')
     // Remove the file
-    await promisify(fs.unlink, outputPath)
+    await removeFile(outputPath)
     
     logger.info('Watchdog: wait for changes')
     // Wait for the change in pouchdb
@@ -119,6 +119,36 @@ async function doWhatWatchDogsDo (logger, db, path, fileName) {
     })
     
     // Looks good at this point.
+}
+
+function removeFile (path) {
+    // Remove file, and try again if not successful
+    
+    return new Promise((resolve, reject) => {
+        
+        let triesLeft = 5
+        function unlink() {
+            triesLeft--
+            fs.unlink(path, (err) => {
+                if (err) {
+                    if (
+                        triesLeft > 0 &&
+                        err.toString().match(/EBUSY/)
+                    ) {
+                        // try again later:
+                        setTimeout(() => {
+                            unlink()
+                        }, 1000)
+                    } else {
+                        reject(err)
+                    }
+                } else {
+                    resolve()
+                }
+            })
+        }
+        unlink()
+    })
 }
 
 function promisify (fcn) {
