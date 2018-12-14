@@ -27,7 +27,14 @@ const defaults = {
     fieldOrder: false, // This is an expensive check, as it requires decoding the beginning of the video
     fieldOrderScanDuration: 200, // Frames. Note: Needs sufficient motion (Not titlecard)
     scenes: false,
-    sceneThreshold: 0.4
+    sceneThreshold: 0.4,
+    freezeDetection: false,
+    freezeNoise: .001,
+    freezeDuration: '2s',
+    blackDetection: false,
+    blackDuration: '2.0',
+    blackRatio: .98,
+    blackThreshold: .1
   },
   previews: {
     enable: false,

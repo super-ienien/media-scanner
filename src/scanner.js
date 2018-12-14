@@ -260,9 +260,33 @@ module.exports = function ({ config, db, logger }) {
       })
     })
 
-    const scenes = await new Promise((resolve, reject) => {
-      if (!config.metadata.scenes) {
-        return resolve(undefined)
+    const metadata = await new Promise((resolve, reject) => {
+      if (!config.metadata.scenes && !config.metadata.freezeDetection && !config.metadata.blackDetection) {
+        return resolve({})
+      }
+
+      let filterString = '' // String with combined filters.
+      if (config.metadata.scenes) {
+        filterString += `"select='gt(scene,${config.metadata.sceneThreshold})',showinfo"`
+
+        if (config.metadata.blackDetection || config.metadata.freezeDetection) {
+          filterString += ','
+        }
+      }
+
+      if (config.metadata.blackDetection) {
+        filterString += `blackdetect=d=${config.metadata.blackDuration}:
+          pic_th=${config.metadata.blackRatio}:
+          pix_th=${config.metadata.thresHold}`
+          
+        if (config.metadata.freezeDetection) {
+          filterString += ','
+        }
+      }
+
+      if (config.metadata.freezeDetection) {
+        filterString += `freezedetect=n=${config.metadata.freezeNoise}:
+          d=${config.metadata.freezeDuration}`
       }
 
       const args = [
@@ -270,7 +294,7 @@ module.exports = function ({ config, db, logger }) {
         config.paths.ffmpeg,
         '-hide_banner',
         '-i', `"${doc.mediaPath}"`,
-        '-filter:v', `"select='gt(scene,${config.metadata.sceneThreshold})',showinfo"`,
+        '-filter:v', filterString,
         '-an',
         '-f', 'null',
         '-'
@@ -281,7 +305,10 @@ module.exports = function ({ config, db, logger }) {
         }
 
         const scenes = []
+        const blacks = []
+        const freezes = []
 
+        // Scenes
         var regex = /Parsed_showinfo_(.*)pts_time:([\d.]+)\s+/g
         let res
         do {
@@ -290,15 +317,59 @@ module.exports = function ({ config, db, logger }) {
             scenes.push(parseFloat(res[2]))
           }
         } while (res)
+        
+        // Black detect
+        var regex = /(black_start:)(\d+(.\d+)?)( black_end:)(\d+(.\d+)?)( black_duration:)(\d+(.\d+))?/g
+        do {
+            res = regex.exec(stderr)
+            if (res) {
+                blacks.push({
+                    start: res[2],
+                    duration: res[5],
+                    end: res[8]
+                })
+            }
+        } while (res)
 
-        return resolve(scenes)
+        // Freeze detect
+        regex = /(lavfi\.freezedetect\.freeze_start: )(\d+(.\d+)?)/g
+        do {
+            res = regex.exec(stderr)
+            if (res) {
+                freezes.push({ start: res[2] })
+            }
+        } while (res)
+        
+        regex = /(lavfi\.freezedetect\.freeze_duration: )(\d+(.\d+)?)/g
+        let i = 0
+        do {
+            res = regex.exec(stderr)
+            if (res) {
+                freezes[i].duration = res[2]
+                i++
+            }
+        } while (res)
+        
+        regex = /(lavfi\.freezedetect\.freeze_end: )(\d+(.\d+)?)/g
+        i = 0
+        do {
+            res = regex.exec(stderr)
+            if (res) {
+                freezes[i].end = res[2]
+                i++
+            }
+        } while (res)
+
+        return resolve({ scenes, freezes, blacks })
       })
     })
 
     return {
       name: doc._id,
       field_order: fieldOrder,
-      scenes: scenes,
+      scenes: metadata.scenes,
+      freezes: metadata.freezes,
+      blacks: metadata.blacks,
 
       streams: json.streams.map(s => ({
         codec: {
