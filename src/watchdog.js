@@ -196,7 +196,6 @@ module.exports = function startWatchDog(logger, db) {
                 })
             }
             setInterval(triggerWatchDog, CHECK_INTERVAL)
-            setTimeout(triggerWatchDog, 3 * 1000)
         } else {
             logger.warn(`Watchdog is disabled because ${path} wasn't found`)
         }
