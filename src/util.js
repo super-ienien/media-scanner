@@ -48,45 +48,41 @@ module.exports = {
               cmd = 'df -lkPT | grep ^/'
             if (process.platform === 'freebsd' || process.platform === 'openbsd')
               cmd = 'df -lkPT'
-            exec(command, function (err, stdout) {
-              if (!err) {
-                exec(cmd, function (error, stdout) {
-                  if (!error) {
-                    let lines = stdout.toString().split('\n');
-                    lines.forEach(function (line) {
-                      if (line !== '') {
-                        line = line.replace(/ +/g, ' ').split(' ');
-                        if (line && (line[0].startsWith('/')) || (line[6] && line[6] === '/')) {
-                          const res  = {
-                            fs: line[0],
-                            type: line[1],
-                            size: parseInt(line[2]) * 1024,
-                            used: parseInt(line[3]) * 1024,
-                            use: parseFloat(100 * line[3] / line[2]).toFixed(2),
-                            mount: line[line.length - 1]
-                          }
-                          if (process.platform === 'darwin') {
-                            res.type =  'HFS'
-                            res.size = parseInt(line[1]) * 1024
-                            res.used = parseInt(line[2]) * 1024
-                          }
-                          res.use = (100 * res.size / res.used).toFixed(2)
-                          // data.push({
-                          //   'fs': line[0],
-                          //   'type': process.platform === 'darwin' ? 'HFS' : line[1],
-                          //   'size': parseInt(process.platform === 'darwin' ?  line[1] : line[2]) * 1024,
-                          //   'used': parseInt(process.platform === 'darwin' ? line[2] : line[3]) * 1024,
-                          //   'use': parseFloat((100.0 * (process.platform === 'darwin' ? line[2] : line[3]) / (process.platform === 'darwin' ? line[1] : line[2])).toFixed(2)),
-                          //   'mount': line[line.length - 1]
-                          // })
-                          data.push(res)
-                        }
+            exec(cmd, function (error, stdout) {
+              if (!error) {
+                let lines = stdout.toString().split('\n');
+                lines.forEach(function (line) {
+                  if (line !== '') {
+                    line = line.replace(/ +/g, ' ').split(' ');
+                    if (line && (line[0].startsWith('/')) || (line[6] && line[6] === '/')) {
+                      const res  = {
+                        fs: line[0],
+                        type: line[1],
+                        size: parseInt(line[2]) * 1024,
+                        used: parseInt(line[3]) * 1024,
+                        use: parseFloat(100 * line[3] / line[2]).toFixed(2),
+                        mount: line[line.length - 1]
                       }
-                    });
+                      if (process.platform === 'darwin') {
+                        res.type =  'HFS'
+                        res.size = parseInt(line[1]) * 1024
+                        res.used = parseInt(line[2]) * 1024
+                      }
+                      res.use = (100 * res.size / res.used).toFixed(2)
+                      // data.push({
+                      //   'fs': line[0],
+                      //   'type': process.platform === 'darwin' ? 'HFS' : line[1],
+                      //   'size': parseInt(process.platform === 'darwin' ?  line[1] : line[2]) * 1024,
+                      //   'used': parseInt(process.platform === 'darwin' ? line[2] : line[3]) * 1024,
+                      //   'use': parseFloat((100.0 * (process.platform === 'darwin' ? line[2] : line[3]) / (process.platform === 'darwin' ? line[1] : line[2])).toFixed(2)),
+                      //   'mount': line[line.length - 1]
+                      // })
+                      data.push(res)
+                    }
                   }
-                  resolve(data)
-                })
+                });
               }
+              resolve(data)
             })
             break
           case 'win32' :
