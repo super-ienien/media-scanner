@@ -1,0 +1,97 @@
+defaults: &defaults
+  docker:
+    - image: circleci/node:8
+  working_directory: ~/project
+
+version: 2
+jobs:
+  Checkout Code:
+    <<: *defaults
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/project
+      - restore_cache:
+          keys:
+            - yarn-cache-{{ .Branch }}-{{ checksum "yarn.lock" }}
+            - yarn-cache-{{ .Branch }}
+            - yarn-cache-
+      - run: yarn install
+      - save_cache:
+          key: yarn-cache-{{ .Branch }}-{{ checksum "yarn.lock" }}
+          paths: [node_modules]
+      - persist_to_workspace:
+          root: .
+          paths: [.]
+
+  Build-linux:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/project
+      - run:
+          name: Install and build
+          command: yarn install && yarn build-linux
+      - persist_to_workspace:
+          root: .
+          paths: [.]
+  
+  Tarball:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+        at: ~/project
+      - run:
+        name: Tar the dist folder
+        command: tar czf mediascanner.tar.gz ./dist/scanner ./dist/leveldown.node
+      - store_artifacts:
+        path: ./mediascanner.tar.gz
+
+  Build-windows:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+          at: ~/project
+      - run:
+          name: Install and build
+          command: yarn install && yarn build-win32-on-linux
+      - persist_to_workspace:
+          root: .
+          paths: [.]
+  
+  Zip:
+    <<: *defaults
+    steps:
+      - attach_workspace:
+        at: ~/project
+      - run:
+        name: Zip the dist folder
+        command: zip mediascanner.zip ./dist/scanner.exe ./dist/leveldown.node
+      - store_artifacts:
+        path: ./mediascanner.zip
+
+workflows:
+  version: 2
+  Test build and deploy(master only):
+    jobs:
+      - Checkout Code
+      - Build-linux:
+          requires:
+            - Checkout Code
+          filters:
+            branches:
+              only:
+                - master
+      - Tarball:
+          requires:
+            - Build-linux
+      - Build-windows-on-linux:
+          requires:
+            - Checkout Code
+          filters:
+            branches:
+              only:
+                - master
+      - Zip:
+          requires:
+            - Build-windows-on-linux
