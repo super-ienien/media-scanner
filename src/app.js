@@ -28,6 +28,13 @@ module.exports = function ({ db, config, logger }) {
     res.send(filesystemInfo)
   }))
 
+  app.get('/stat/seq', wrap(async (req, res) => {
+    const { update_seq } = await db.info()
+
+    res.set('content-type', 'application/json')
+    res.send({ update_seq })
+  }))
+
   app.get('/media', wrap(async (req, res) => {
     const { rows } = await db.allDocs({ include_docs: true })
 
