@@ -40,12 +40,12 @@ jobs:
     <<: *defaults
     steps:
       - attach_workspace:
-        at: ~/project
+          at: ~/project
       - run:
-        name: Tar the dist folder
-        command: tar czf mediascanner.tar.gz ./dist/scanner ./dist/leveldown.node
+          name: Tar the dist folder
+          command: tar czf mediascanner.tar.gz ./dist/scanner ./dist/leveldown.node
       - store_artifacts:
-        path: ./mediascanner.tar.gz
+          path: ./mediascanner.tar.gz
 
   Build-windows:
     <<: *defaults
@@ -63,12 +63,12 @@ jobs:
     <<: *defaults
     steps:
       - attach_workspace:
-        at: ~/project
+          at: ~/project
       - run:
-        name: Zip the dist folder
-        command: zip mediascanner.zip ./dist/scanner.exe ./dist/leveldown.node
+          name: Zip the dist folder
+          command: zip mediascanner.zip ./dist/scanner.exe ./dist/leveldown.node
       - store_artifacts:
-        path: ./mediascanner.zip
+          path: ./mediascanner.zip
 
 workflows:
   version: 2
@@ -85,7 +85,7 @@ workflows:
       - Tarball:
           requires:
             - Build-linux
-      - Build-windows-on-linux:
+      - Build-windows:
           requires:
             - Checkout Code
           filters:
@@ -94,4 +94,4 @@ workflows:
                 - master
       - Zip:
           requires:
-            - Build-windows-on-linux
+            - Build-windows
