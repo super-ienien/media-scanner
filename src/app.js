@@ -18,6 +18,15 @@ module.exports = function ({ db, config, logger }) {
     mode: 'minimumForPouchDB'
   }))
 
+  app.get('/cls.json', wrap(async (req, res) => {
+    const { rows } = await db.allDocs({ include_docs: true })
+
+    const docs = rows
+      .map(row => row.doc)
+
+    res.json(docs)
+  }))
+
   app.get('/cls', wrap(async (req, res) => {
     const { rows } = await db.allDocs({ include_docs: true })
 
