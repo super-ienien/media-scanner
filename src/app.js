@@ -3,7 +3,7 @@ const pinoHttp = require('pino-http')
 const PouchDB = require('pouchdb-node')
 const util = require('util')
 const recursiveReadDir = require('recursive-readdir')
-const { getId } = require('./util')
+const { getId, getMediaJsonFromDoc, getThumbJsonFromDoc } = require('./util')
 
 const recursiveReadDirAsync = util.promisify(recursiveReadDir)
 
@@ -20,11 +20,7 @@ module.exports = function ({ db, config, logger }) {
 
   app.get('/cls.json', wrap(async (req, res) => {
     const { rows } = await db.allDocs({ include_docs: true })
-
-    const docs = rows
-      .map(row => row.doc)
-
-    res.json(docs)
+    res.json(rows.map(row => getMediaJsonFromDoc(row.doc)))
   }))
 
   app.get('/cls', wrap(async (req, res) => {
@@ -60,6 +56,11 @@ module.exports = function ({ db, config, logger }) {
     res.send(`200 FLS OK\r\n${str}\r\n`)
   }))
 
+  app.get('/cinf/:id.json', wrap(async (req, res) => {
+    const doc = await db.get(req.params.id.toUpperCase())
+    res.json(getMediaJsonFromDoc(doc))
+  }))
+
   app.get('/cinf/:id', wrap(async (req, res) => {
     const { cinf } = await db.get(req.params.id.toUpperCase())
     res.send(`201 CINF OK\r\n${cinf}`)
@@ -75,6 +76,15 @@ module.exports = function ({ db, config, logger }) {
     res.send(`202 THUMBNAIL GENERATE OK\r\n`)
   }))
 
+  app.get('/thumbnail.json', wrap(async (req, res) => {
+    const { rows } = await db.allDocs({ include_docs: true })
+
+    const json = rows
+      .map(row => getThumbJsonFromDoc(row.doc))
+      
+    res.json(json)
+  }))
+
   app.get('/thumbnail', wrap(async (req, res) => {
     const { rows } = await db.allDocs({ include_docs: true })
 
@@ -83,6 +93,16 @@ module.exports = function ({ db, config, logger }) {
       .reduce((acc, inf) => acc + inf, '')
 
     res.send(`200 THUMBNAIL LIST OK\r\n${str}\r\n`)
+  }))
+
+  app.get('/thumbnail/:id.json', wrap(async (req, res) => {
+    const doc = await db.get(req.params.id.toUpperCase())
+    res.json(getThumbJsonFromDoc(doc))
+  }))
+
+  app.get('/thumbnail/:id.png', wrap(async (req, res) => {
+    const { _attachments } = await db.get(req.params.id.toUpperCase(), { attachments: true })
+    res.type('png').send(Buffer.from(_attachments['thumb.png'].data, 'base64'))
   }))
 
   app.get('/thumbnail/:id', wrap(async (req, res) => {
