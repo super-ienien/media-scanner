@@ -129,6 +129,7 @@ module.exports = function ({ config, db, logger }) {
     await db.put(doc)
 
     mediaLogger.info('Scanned')
+    mediaLogger.info('Scanned')
   }
 
   async function generateThumb (doc) {
@@ -366,6 +367,9 @@ module.exports = function ({ config, db, logger }) {
 
     return {
       name: doc._id,
+      path: doc.mediaPath,
+      size: doc.mediaSize,
+      time: doc.mediaTime,
       field_order: fieldOrder,
       scenes: metadata.scenes,
       freezes: metadata.freezes,
