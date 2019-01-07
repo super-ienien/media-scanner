@@ -129,7 +129,6 @@ module.exports = function ({ config, db, logger }) {
     await db.put(doc)
 
     mediaLogger.info('Scanned')
-    mediaLogger.info('Scanned')
   }
 
   async function generateThumb (doc) {
